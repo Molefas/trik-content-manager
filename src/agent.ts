@@ -12,10 +12,22 @@ import { createCreateContent, createListContent, createGetContent, createUpdateC
 import { createFetchNewsletterEmails } from './tools/gmail.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const systemPrompt = readFileSync(join(__dirname, 'prompts/system.md'), 'utf-8');
+const baseSystemPrompt = readFileSync(join(__dirname, 'prompts/system.md'), 'utf-8');
 
-export default wrapAgent((context: TrikContext) => {
+export default wrapAgent(async (context: TrikContext) => {
   const { storage, config } = context;
+
+  // Build dynamic system prompt with voice and interests from storage
+  const voice = (await storage.get('voice')) as string || '';
+  const interests = (await storage.get('interests')) as string || '';
+
+  let systemPrompt = baseSystemPrompt;
+  if (voice) {
+    systemPrompt += `\n\n## User's Voice Profile\n\n${voice}`;
+  }
+  if (interests) {
+    systemPrompt += `\n\n## User's Interests\n\n${interests}`;
+  }
 
   const model = new ChatAnthropic({
     modelName: 'claude-sonnet-4-6',
