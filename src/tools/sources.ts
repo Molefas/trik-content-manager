@@ -6,7 +6,19 @@ import { addSourceToStorage, getSources, removeSourceFromStorage } from '../stor
 export function createAddSource(storage: TrikStorage) {
   return tool(
     async (input) => {
-      return JSON.stringify({ result: 'Not implemented' });
+      const { source, status } = await addSourceToStorage(storage, {
+        type: input.type,
+        identifier: input.identifier,
+        title: input.title,
+      });
+      return JSON.stringify({
+        id: source.id,
+        type: source.type,
+        identifier: source.identifier,
+        title: source.title,
+        status,
+        addedAt: source.addedAt,
+      });
     },
     {
       name: 'addSource',
@@ -24,7 +36,27 @@ export function createAddSource(storage: TrikStorage) {
 export function createListSources(storage: TrikStorage) {
   return tool(
     async (input) => {
-      return JSON.stringify({ result: 'Not implemented' });
+      let sources = await getSources(storage);
+      const filterType = input.type || 'all';
+
+      if (input.type) {
+        sources = sources.filter((s) => s.type === input.type);
+      }
+
+      const summaries = sources.map((s) => ({
+        id: s.id,
+        type: s.type,
+        identifier: s.identifier,
+        title: s.title,
+        addedAt: s.addedAt,
+        lastScannedAt: s.lastScannedAt,
+      }));
+
+      return JSON.stringify({
+        filterType,
+        resultCount: summaries.length,
+        sources: summaries,
+      });
     },
     {
       name: 'listSources',
@@ -42,7 +74,12 @@ export function createListSources(storage: TrikStorage) {
 export function createRemoveSource(storage: TrikStorage) {
   return tool(
     async (input) => {
-      return JSON.stringify({ result: 'Not implemented' });
+      const { source, status } = await removeSourceFromStorage(storage, input.sourceId);
+      return JSON.stringify({
+        sourceId: input.sourceId,
+        title: source?.title || 'unknown',
+        status,
+      });
     },
     {
       name: 'removeSource',
