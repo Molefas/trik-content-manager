@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 2,
+  "id": "content-manager",
+  "name": "Content Manager",
+  "description": "Automates content gathering from blogs, articles, and newsletters, scores inspirations by user interests, and generates articles, LinkedIn posts, and X posts in the user's voice.",
+  "version": "0.1.0",
+  "agent": {
+    "mode": "conversational",
+    "handoffDescription": "Manages content sources (blogs, articles, newsletters), extracts and scores inspirations, and generates articles, LinkedIn posts, and X posts on demand using the user's voice and interests. Supports iterative content refinement and lifecycle management.",
+    "systemPromptFile": "./src/prompts/system.md",
+    "model": {
+      "capabilities": ["tool_use"]
+    },
+    "domain": ["content management", "content curation", "social media", "AI generation"]
+  },
+  "tools": {
+    "addSource": {
+      "description": "Add a new content source (blog URL, single article URL, or newsletter sender email) to the tracked sources list.",
+      "logTemplate": "Add source: {{sourceType}}, {{identifier}}, {{title}}, {{status}}",
+      "logSchema": {
+        "sourceType": { "type": "string", "description": "Type of source", "enum": ["blog", "article", "newsletter"] },
+        "identifier": { "type": "string", "description": "URL or email", "maxLength": 500 },
+        "title": { "type": "string", "description": "Source name", "maxLength": 200 },
+        "status": { "type": "string", "description": "Result", "enum": ["added", "duplicate", "updated"] }
+      }
+    },
+    "listSources": {
+      "description": "List all tracked content sources with optional type filter.",
+      "logTemplate": "List sources: {{filterType}}, {{resultCount}}",
+      "logSchema": {
+        "filterType": { "type": "string", "description": "Type filter applied", "enum": ["all", "blog", "article", "newsletter"] },
+        "resultCount": { "type": "integer", "description": "Number of sources returned" }
+      }
+    },
+    "removeSource": {
+      "description": "Remove a tracked content source by ID.",
+      "logTemplate": "Remove source: {{sourceId}}, {{title}}, {{status}}",
+      "logSchema": {
+        "sourceId": { "type": "string", "description": "Source ID removed", "maxLength": 36 },
+        "title": { "type": "string", "description": "Source title", "maxLength": 200 },
+        "status": { "type": "string", "description": "Result", "enum": ["removed", "not_found"] }
+      }
+    },
+    "addInspiration": {
+      "description": "Store a new inspiration entry with title, description, URL, score, and source reference.",
+      "logTemplate": "Add inspiration: {{title}}, {{score}}, {{sourceTitle}}, {{status}}",
+      "logSchema": {
+        "title": { "type": "string", "description": "Inspiration title", "maxLength": 300 },
+        "score": { "type": "integer", "description": "Relevance score 1-10" },
+        "sourceTitle": { "type": "string", "description": "Parent source name", "maxLength": 200 },
+        "status": { "type": "string", "description": "Result", "enum": ["added", "duplicate"] }
+      }
+    },
+    "listInspirations": {
+      "description": "Search and filter inspirations by query text, score range, date range, source, with sorting and limits.",
+      "logTemplate": "List inspirations: {{filterType}}, {{resultCount}}",
+      "logSchema": {
+        "filterType": { "type": "string", "description": "Primary filter used", "enum": ["all", "byQuery", "byScore", "byDate", "bySource"] },
+        "resultCount": { "type": "integer", "description": "Number of results returned" }
+      }
+    },
+    "getInspiration": {
+      "description": "Get full details of a specific inspiration by ID.",
+      "logTemplate": "Get inspiration: {{title}}, {{score}}",
+      "logSchema": {
+        "title": { "type": "string", "description": "Inspiration title", "maxLength": 300 },
+        "score": { "type": "integer", "description": "Relevance score" }
+      }
+    },
+    "fetchNewsletterEmails": {
+      "description": "Fetch recent emails from a newsletter sender via Gmail API using OAuth2 credentials.",
+      "logTemplate": "Fetch newsletter emails: {{senderEmail}}, {{emailCount}}, {{status}}",
+      "logSchema": {
+        "senderEmail": { "type": "string", "description": "Newsletter sender email", "maxLength": 200 },
+        "emailCount": { "type": "integer", "description": "Number of emails fetched" },
+        "status": { "type": "string", "description": "Result", "enum": ["success", "auth_error", "no_emails", "error"] }
+      }
+    },
+    "createContent": {
+      "description": "Store a newly generated piece of content (article, LinkedIn post, or X post) as a draft.",
+      "logTemplate": "Create content: {{contentType}}, {{title}}, {{inspirationCount}}, {{status}}",
+      "logSchema": {
+        "contentType": { "type": "string", "description": "Type of content", "enum": ["article", "linkedin", "x_post"] },
+        "title": { "type": "string", "description": "Content title", "maxLength": 300 },
+        "inspirationCount": { "type": "integer", "description": "Number of inspirations referenced" },
+        "status": { "type": "string", "description": "Creation status", "enum": ["created", "error"] }
+      }
+    },
+    "listContent": {
+      "description": "List created content filtered by status (draft/done) and/or content type.",
+      "logTemplate": "List content: {{statusFilter}}, {{typeFilter}}, {{resultCount}}",
+      "logSchema": {
+        "statusFilter": { "type": "string", "description": "Status filter applied", "enum": ["all", "draft", "done"] },
+        "typeFilter": { "type": "string", "description": "Type filter applied", "enum": ["all", "article", "linkedin", "x_post"] },
+        "resultCount": { "type": "integer", "description": "Number of results returned" }
+      }
+    },
+    "getContent": {
+      "description": "Get full content details including body text by content ID.",
+      "logTemplate": "Get content: {{title}}, {{contentType}}, {{status}}",
+      "logSchema": {
+        "title": { "type": "string", "description": "Content title", "maxLength": 300 },
+        "contentType": { "type": "string", "description": "Type", "enum": ["article", "linkedin", "x_post"] },
+        "status": { "type": "string", "description": "Current status", "enum": ["draft", "done"] }
+      }
+    },
+    "updateContent": {
+      "description": "Update content body text (iteration) or status (mark as done).",
+      "logTemplate": "Update content: {{title}}, {{action}}, {{status}}",
+      "logSchema": {
+        "title": { "type": "string", "description": "Content title", "maxLength": 300 },
+        "action": { "type": "string", "description": "What was updated", "enum": ["body_updated", "status_changed", "both"] },
+        "status": { "type": "string", "description": "Current status after update", "enum": ["draft", "done"] }
+      }
+    }
+  },
+  "capabilities": {
+    "session": { "enabled": true, "maxDurationMs": 1800000 },
+    "storage": { "enabled": true }
+  },
+  "config": {
+    "optional": [
+      { "key": "gmail_client_id", "description": "Google OAuth2 client ID for Gmail API access" },
+      { "key": "gmail_client_secret", "description": "Google OAuth2 client secret" },
+      { "key": "gmail_refresh_token", "description": "Google OAuth2 refresh token for Gmail API access" }
+    ]
+  },
+  "limits": { "maxTurnTimeMs": 30000 },
+  "entry": { "module": "./dist/agent.js", "export": "default" }
+}

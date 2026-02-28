@@ -1,0 +1,24 @@
+{
+  "name": "content-manager",
+  "version": "0.1.0",
+  "description": "Automates content gathering from blogs, articles, and newsletters, scores inspirations by user interests, and generates articles, LinkedIn posts, and X posts in the user's voice.",
+  "type": "module",
+  "main": "./dist/agent.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "node --import tsx src/agent.ts",
+    "clean": "rm -rf dist *.tsbuildinfo"
+  },
+  "dependencies": {
+    "@langchain/anthropic": "^0.3.0",
+    "@langchain/core": "^0.3.0",
+    "@langchain/langgraph": "^0.2.0",
+    "@trikhub/sdk": "latest",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.3.2",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}
