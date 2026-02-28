@@ -6,7 +6,21 @@ import { addContentToStorage, getContentList, getContentById, updateContentInSto
 export function createCreateContent(storage: TrikStorage) {
   return tool(
     async (input) => {
-      return JSON.stringify({ result: 'Not implemented' });
+      const content = await addContentToStorage(storage, {
+        type: input.type,
+        title: input.title,
+        body: input.body,
+        inspirationIds: input.inspirationIds,
+        userPrompt: input.userPrompt,
+      });
+      return JSON.stringify({
+        id: content.id,
+        type: content.type,
+        title: content.title,
+        status: content.status,
+        inspirationIds: content.inspirationIds,
+        createdAt: content.createdAt,
+      });
     },
     {
       name: 'createContent',
@@ -26,7 +40,26 @@ export function createCreateContent(storage: TrikStorage) {
 export function createListContent(storage: TrikStorage) {
   return tool(
     async (input) => {
-      return JSON.stringify({ result: 'Not implemented' });
+      const allContent = await getContentList(storage);
+      const results = filterContent(allContent, {
+        status: input.status,
+        type: input.type,
+      });
+
+      const summaries = results.map((c) => ({
+        id: c.id,
+        type: c.type,
+        title: c.title,
+        status: c.status,
+        inspirationIds: c.inspirationIds,
+        createdAt: c.createdAt,
+        updatedAt: c.updatedAt,
+      }));
+
+      return JSON.stringify({
+        resultCount: summaries.length,
+        content: summaries,
+      });
     },
     {
       name: 'listContent',
@@ -42,7 +75,11 @@ export function createListContent(storage: TrikStorage) {
 export function createGetContent(storage: TrikStorage) {
   return tool(
     async (input) => {
-      return JSON.stringify({ result: 'Not implemented' });
+      const content = await getContentById(storage, input.contentId);
+      if (!content) {
+        return JSON.stringify({ error: 'Content not found', contentId: input.contentId });
+      }
+      return JSON.stringify(content);
     },
     {
       name: 'getContent',
@@ -57,7 +94,20 @@ export function createGetContent(storage: TrikStorage) {
 export function createUpdateContent(storage: TrikStorage) {
   return tool(
     async (input) => {
-      return JSON.stringify({ result: 'Not implemented' });
+      const { content, action } = await updateContentInStorage(storage, input.contentId, {
+        body: input.body,
+        status: input.status,
+      });
+      if (!content) {
+        return JSON.stringify({ error: 'Content not found', contentId: input.contentId });
+      }
+      return JSON.stringify({
+        id: content.id,
+        title: content.title,
+        status: content.status,
+        action,
+        updatedAt: content.updatedAt,
+      });
     },
     {
       name: 'updateContent',
