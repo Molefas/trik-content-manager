@@ -16,7 +16,7 @@
 
 | Phase | Status | Description |
 |-------|--------|-------------|
-| 1 | [ ] | Project Foundation & Scaffold |
+| 1 | [x] | Project Foundation & Scaffold |
 | 2 | [ ] | Sources Management (3 tools) |
 | 3 | [ ] | Inspirations Management (3 tools) |
 | 4 | [ ] | Content Management (4 tools) |
