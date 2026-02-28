@@ -6,7 +6,21 @@ import { addInspirationToStorage, getInspirations, getInspirationById, filterIns
 export function createAddInspiration(storage: TrikStorage) {
   return tool(
     async (input) => {
-      return JSON.stringify({ result: 'Not implemented' });
+      const { inspiration, status } = await addInspirationToStorage(storage, {
+        sourceId: input.sourceId,
+        title: input.title,
+        description: input.description,
+        url: input.url,
+        score: input.score,
+      });
+      return JSON.stringify({
+        id: inspiration.id,
+        title: inspiration.title,
+        score: inspiration.score,
+        url: inspiration.url,
+        status,
+        addedAt: inspiration.addedAt,
+      });
     },
     {
       name: 'addInspiration',
@@ -26,7 +40,39 @@ export function createAddInspiration(storage: TrikStorage) {
 export function createListInspirations(storage: TrikStorage) {
   return tool(
     async (input) => {
-      return JSON.stringify({ result: 'Not implemented' });
+      const allInspirations = await getInspirations(storage);
+      const results = filterInspirations(allInspirations, {
+        query: input.query,
+        minScore: input.minScore,
+        maxScore: input.maxScore,
+        dateFrom: input.dateFrom,
+        dateTo: input.dateTo,
+        sourceId: input.sourceId,
+        sortBy: input.sortBy || 'date',
+        limit: input.limit || 20,
+      });
+
+      let filterType = 'all';
+      if (input.query) filterType = 'byQuery';
+      else if (input.minScore || input.maxScore) filterType = 'byScore';
+      else if (input.dateFrom || input.dateTo) filterType = 'byDate';
+      else if (input.sourceId) filterType = 'bySource';
+
+      const summaries = results.map((i) => ({
+        id: i.id,
+        title: i.title,
+        description: i.description,
+        url: i.url,
+        score: i.score,
+        addedAt: i.addedAt,
+        sourceId: i.sourceId,
+      }));
+
+      return JSON.stringify({
+        filterType,
+        resultCount: summaries.length,
+        inspirations: summaries,
+      });
     },
     {
       name: 'listInspirations',
@@ -49,7 +95,11 @@ export function createListInspirations(storage: TrikStorage) {
 export function createGetInspiration(storage: TrikStorage) {
   return tool(
     async (input) => {
-      return JSON.stringify({ result: 'Not implemented' });
+      const inspiration = await getInspirationById(storage, input.inspirationId);
+      if (!inspiration) {
+        return JSON.stringify({ error: 'Inspiration not found', inspirationId: input.inspirationId });
+      }
+      return JSON.stringify(inspiration);
     },
     {
       name: 'getInspiration',
